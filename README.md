@@ -57,14 +57,14 @@ Nine stores cluster at 67–69% on time. Golf Course Ext (52%), Sector 137 (33%,
 
 ![Daily delivery time with anomalies](3_delivery_time_anomalies.png)
 
-A 7-day rolling baseline flags 4 days when delivery time ran 32–38% above normal. Order volume rose on the same days, which points to demand surges (for example, rain) rather than store failures.
+A 7-day rolling baseline flags 4 days when delivery time ran 32–38% above normal. Order volume rose on the same days, which points to demand surges (such as weather; not captured in this dataset) rather than store failures.
 **So what:** turn this query into a daily alert that triggers standby rider pools. *(Query Q5)*
 
 ### 4. Perishables stock out on about 1 in 5 store-days
 
 ![Stockout rate by category](4_stockouts_by_category.png)
 
-Fruits & Vegetables and Dairy & Bread turn about 39 times a month, three times faster than other categories, and stock out on 18–19% of store-days. Every other category stays under 3%. Orders with a stocked-out item in the basket are cancelled 3x as often (3.0% vs 1.0%) and have 3.7x more missing-item complaints (2.7% vs 0.7%).
+Fruits & Vegetables and Dairy & Bread turn about 39 times a month, three times faster than other categories, and stock out on 18–19% of store-days. Every other category stays under 3%. Orders with a stocked-out item in the basket are cancelled 3x as often (3.0% vs 1.0%) and have 3.7x more missing-item complaints (2.71% vs 0.74%).
 **So what:** perishables need more replenishment cover; the current level does not match their turnover. *(Queries Q6, Q7)*
 
 ### 5. The biggest funnel leak is product view → cart, and stockouts drive it
@@ -78,7 +78,7 @@ Only 36% of app sessions end in an order. The largest drop (−28%) is between v
 
 ![Promo pilot lift](6_promo_pilot_lift.png)
 
-Pilot stores grew orders per store per day by 22%, against 4% in control stores: about 870 incremental orders. The ₹50 discount was also given on orders that would have happened anyway, so the real cost is **₹157 of discount per extra order**, about 21% of the average order value.
+Pilot stores grew orders per store per day by 22%, against 3.7% in control stores: about 870 incremental orders. The ₹50 discount was also given on orders that would have happened anyway, so the real cost is **₹157 of discount per extra order**, about 21% of the average order value.
 **So what:** don't roll it out to everyone. Scale it only if contribution margin per order exceeds ₹157, or target it at Occasional customers, whose 30-day repeat rate is 37% against 71% for Regular customers. *(Queries Q8, Q10, Q13)*
 
 ---
