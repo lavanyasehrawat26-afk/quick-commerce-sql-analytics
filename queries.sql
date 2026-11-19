@@ -1,4 +1,4 @@
--- Quick-Commerce Operations & Funnel Analytics: 12 SQL queries (SQLite)
+-- Quick-Commerce Operations & Funnel Analytics: 13 SQL queries (SQLite)
 -- Data: SYNTHETIC, Jul-Sep 2025 (see README). Tables: stores, customers, orders, inventory_daily, app_sessions.
 
 -- Q1: Data validation before analysis: duplicates, orphan keys, invalid values
@@ -228,3 +228,38 @@ JOIN customers c ON c.customer_id = a.customer_id
 GROUP BY a.device, user_type, stock_view
 HAVING COUNT(*) >= 300
 ORDER BY session_conversion_pct ASC;
+
+-- Q13: Impact sizing in rupees: (a) GMV lost to stockouts in the funnel, (b) promo pilot payback
+WITH funnel AS (
+    SELECT SUM(saw_stockout)                                                     AS stockout_sessions,
+           1.0 * SUM(CASE WHEN saw_stockout = 1 THEN placed_order END) / SUM(saw_stockout)  AS conv_stockout,
+           1.0 * SUM(CASE WHEN saw_stockout = 0 THEN placed_order END) / SUM(1 - saw_stockout) AS conv_clean
+    FROM app_sessions
+), aov AS (
+    SELECT AVG(order_value) AS aov FROM clean_orders WHERE status = 'delivered'
+), pilot AS (
+    SELECT SUM(s.in_promo_pilot = 1 AND DATE(o.order_ts) >= '2025-08-26')                         AS pilot_orders,
+           SUM(o.promo_code IS NOT NULL)                                                          AS promo_redemptions,
+           COUNT(DISTINCT CASE WHEN s.in_promo_pilot = 1 AND DATE(o.order_ts) >= '2025-08-26'
+                               THEN o.store_id || DATE(o.order_ts) END)                           AS pilot_store_days
+    FROM clean_orders o JOIN stores s ON s.store_id = o.store_id
+    WHERE o.store_id <> 11
+)
+SELECT 'Stockout-driven lost orders (13 weeks)' AS metric,
+       ROUND(f.stockout_sessions * (f.conv_clean - f.conv_stockout), 0) AS value
+FROM funnel f
+UNION ALL
+SELECT 'Stockout-driven lost GMV, Rs lakh (13 weeks)',
+       ROUND(f.stockout_sessions * (f.conv_clean - f.conv_stockout) * a.aov / 1e5, 1)
+FROM funnel f, aov a
+UNION ALL
+-- incremental orders = pilot orders minus what pilot stores would have done at control-group growth (+3.7%)
+SELECT 'Promo incremental orders', ROUND(p.pilot_orders - p.pilot_store_days * 28.5 * 1.037, 0) FROM pilot p
+UNION ALL
+SELECT 'Promo discount cost, Rs lakh', ROUND(p.promo_redemptions * 50 / 1e5, 2) FROM pilot p
+UNION ALL
+SELECT 'Promo incremental GMV, Rs lakh',
+       ROUND((p.pilot_orders - p.pilot_store_days * 28.5 * 1.037) * a.aov / 1e5, 2) FROM pilot p, aov a
+UNION ALL
+SELECT 'Discount cost per incremental order, Rs',
+       ROUND(p.promo_redemptions * 50.0 / (p.pilot_orders - p.pilot_store_days * 28.5 * 1.037), 0) FROM pilot p;
