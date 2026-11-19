@@ -1,0 +1,138 @@
+
+-- Quick-Commerce Operations & Funnel Analytics: 12 SQL queries (SQLite)
+
+-- Q1: Data validation before analysis: duplicates, orphan keys, invalid values
+check_name | rows_flagged
+duplicate orders | 1
+orphan customer_id | 1
+non-positive order_value | 1
+delivered without delivery time | 1
+
+-- Q2: Weekly KPI dashboard feed: orders, GMV, AOV, on-time %, defect rate, cancellation rate
+week | orders | gmv_lakh | aov | avg_delivery_min | on_time_pct | defect_rate_pct | cancel_rate_pct
+2025-W26 | 1833 | 14.25 | 788.0 | 9.5 | 61.2 | 1.44 | 1.36
+2025-W27 | 2114 | 16.34 | 780.0 | 9.4 | 62.1 | 1.43 | 0.95
+2025-W28 | 2448 | 18.01 | 747.0 | 10.7 | 44.9 | 1.78 | 1.47
+2025-W29 | 2282 | 16.69 | 740.0 | 9.5 | 61.4 | 1.51 | 1.14
+2025-W30 | 2263 | 16.76 | 755.0 | 9.5 | 60.8 | 1.98 | 1.99
+2025-W31 | 2412 | 17.75 | 746.0 | 9.4 | 62.6 | 2.1 | 1.33
+2025-W32 | 2498 | 18.64 | 755.0 | 10.0 | 54.0 | 1.9 | 1.12
+2025-W33 | 2387 | 18.42 | 780.0 | 9.5 | 60.8 | 1.65 | 1.09
+2025-W34 | 2509 | 18.31 | 738.0 | 9.5 | 61.6 | 1.93 | 1.08
+2025-W35 | 2667 | 19.66 | 748.0 | 10.0 | 54.6 | 1.56 | 1.42
+2025-W36 | 2604 | 19.1 | 742.0 | 9.5 | 60.9 | 1.9 | 1.15
+2025-W37 | 2692 | 19.57 | 735.0 | 9.4 | 63.0 | 1.65 | 1.08
+2025-W38 | 2652 | 19.7 | 752.0 | 9.3 | 63.3 | 2.06 | 1.17
+
+-- Q3: Store league table: rank stores on on-time % and defect rate (RANK, CTE)
+store_id | city | zone | orders | avg_delivery_min | on_time_pct | defect_rate_pct | on_time_rank | quality_rank
+8 | Delhi | Rohini Sec 9 | 2860 | 9.0 | 68.9 | 1.27 | 1 | 1
+6 | Delhi | Lajpat Nagar | 2654 | 9.0 | 68.8 | 1.64 | 2 | 5
+5 | Delhi | Saket | 2742 | 9.0 | 67.9 | 2.18 | 3 | 11
+2 | Gurgaon | DLF Phase 3 | 2662 | 9.1 | 67.7 | 1.91 | 4 | 8
+12 | Delhi | Mayur Vihar | 2581 | 9.0 | 67.7 | 2.13 | 4 | 10
+10 | Noida | Sector 62 | 2734 | 9.1 | 67.5 | 1.56 | 6 | 4
+1 | Gurgaon | Sector 29 | 2672 | 9.1 | 66.8 | 1.29 | 7 | 2
+3 | Gurgaon | Sohna Road | 2863 | 9.1 | 66.7 | 1.73 | 8 | 7
+9 | Noida | Sector 18 | 2631 | 9.1 | 66.6 | 2.23 | 9 | 12
+4 | Gurgaon | Golf Course Ext | 2703 | 10.1 | 51.9 | 2.1 | 10 | 9
+11 | Noida | Sector 137 | 1572 | 11.0 | 33.1 | 1.48 | 11 | 3
+7 | Delhi | Dwarka Sec 12 | 2687 | 13.5 | 6.2 | 1.69 | 12 | 6
+
+-- Q4: Where does delivery time break? Hour-of-day bottleneck (CASE bucketing)
+time_slot | orders | share_of_orders_pct | avg_delivery_min | on_time_pct
+1) Morning 06-11 | 7245 | 23.1 | 9.3 | 66.7
+2) Daytime 11-18 | 9492 | 30.3 | 8.5 | 77.3
+3) Evening peak 18-22 | 11449 | 36.5 | 11.1 | 34.7
+4) Late night 22-06 | 3175 | 10.1 | 8.5 | 77.2
+
+-- Q5: Anomaly detection: days where network delivery time deviates >15% from its 7-day rolling average
+day | orders | avg_delivery_min | prior_7d_avg | deviation_pct
+2025-07-18 | 426 | 12.9 | 9.4 | 37.7
+2025-07-19 | 451 | 13.0 | 9.9 | 31.6
+2025-08-11 | 394 | 12.9 | 9.4 | 38.1
+2025-09-02 | 471 | 12.8 | 9.4 | 35.9
+
+-- Q6: Defect root cause: defect mix and stockout link (orders placed when a basket category was stocked out)
+basket_condition | orders | cancel_rate_pct | missing_item_pct | damaged_item_pct | wrong_item_pct
+Basket had a stocked-out category | 3419 | 3.01 | 2.71 | 0.87 | 0.15
+No stockout | 27942 | 1.04 | 0.74 | 0.58 | 0.22
+
+-- Q7: Inventory turns and stockout exposure by category
+category | units_sold | avg_inventory_per_store | monthly_inventory_turns | stockout_day_pct | total_stockout_hours
+Fruits & Vegetables | 197295 | 140.0 | 39.1 | 19.4 | 513.0
+Dairy & Bread | 166581 | 118.0 | 39.4 | 18.1 | 496.0
+Electronics & Accessories | 5812 | 14.0 | 11.6 | 2.5 | 44.0
+Staples | 83581 | 182.0 | 12.8 | 1.6 | 36.0
+Snacks & Beverages | 146666 | 317.0 | 12.9 | 1.6 | 24.0
+Household | 36468 | 80.0 | 12.7 | 0.9 | 25.0
+Personal Care | 41981 | 92.0 | 12.7 | 0.8 | 15.0
+
+-- Q8: Promo pilot evaluation: difference-in-differences (pilot vs control stores, pre vs during pilot)
+grp | pre_orders | during_orders | orders_change_pct | pre_aov | during_aov | aov_change_pct
+Pilot | 28.5 | 34.7 | 21.7 | 754.0 | 734.0 | -2.5
+Control | 29.1 | 30.2 | 3.7 | 765.0 | 754.0 | -1.5
+
+-- Q9: Week-over-week order growth by city (LAG window, PARTITION BY)
+city | week | orders | prev_week | wow_pct
+Delhi | 2025-W27 | 929 | None | None
+Delhi | 2025-W28 | 1036 | 929 | 11.5
+Delhi | 2025-W29 | 982 | 1036 | -5.2
+Delhi | 2025-W30 | 1006 | 982 | 2.4
+Delhi | 2025-W31 | 1042 | 1006 | 3.6
+Delhi | 2025-W32 | 1070 | 1042 | 2.7
+Delhi | 2025-W33 | 1055 | 1070 | -1.4
+Delhi | 2025-W34 | 1146 | 1055 | 8.6
+Delhi | 2025-W35 | 1116 | 1146 | -2.6
+Delhi | 2025-W36 | 1092 | 1116 | -2.2
+Delhi | 2025-W37 | 1144 | 1092 | 4.8
+Delhi | 2025-W38 | 1117 | 1144 | -2.4
+Gurgaon | 2025-W27 | 716 | None | None
+Gurgaon | 2025-W28 | 884 | 716 | 23.5
+Gurgaon | 2025-W29 | 808 | 884 | -8.6
+Gurgaon | 2025-W30 | 804 | 808 | -0.5
+Gurgaon | 2025-W31 | 787 | 804 | -2.1
+Gurgaon | 2025-W32 | 883 | 787 | 12.2
+Gurgaon | 2025-W33 | 818 | 883 | -7.4
+Gurgaon | 2025-W34 | 836 | 818 | 2.2
+Gurgaon | 2025-W35 | 917 | 836 | 9.7
+Gurgaon | 2025-W36 | 948 | 917 | 3.4
+Gurgaon | 2025-W37 | 934 | 948 | -1.5
+Gurgaon | 2025-W38 | 902 | 934 | -3.4
+Noida | 2025-W27 | 469 | None | None
+Noida | 2025-W28 | 528 | 469 | 12.6
+Noida | 2025-W29 | 492 | 528 | -6.8
+Noida | 2025-W30 | 453 | 492 | -7.9
+Noida | 2025-W31 | 583 | 453 | 28.7
+Noida | 2025-W32 | 545 | 583 | -6.5
+Noida | 2025-W33 | 514 | 545 | -5.7
+Noida | 2025-W34 | 527 | 514 | 2.5
+Noida | 2025-W35 | 634 | 527 | 20.3
+Noida | 2025-W36 | 564 | 634 | -11.0
+Noida | 2025-W37 | 614 | 564 | 8.9
+Noida | 2025-W38 | 633 | 614 | 3.1
+
+-- Q10: Customer repeat behaviour: share of first-time July customers who reorder within 30 days
+segment | customers | repeat_30d_pct
+Power | 1122 | 96.0
+Regular | 2760 | 71.0
+Occasional | 952 | 37.0
+
+-- Q11: App conversion funnel: open -> product view -> cart -> checkout -> order, with step drop-off
+stage | sessions | pct_of_opens | step_conversion_pct | step_drop_off_pct
+1) App open | 86410 | 100.0 | None | None
+2) Product view | 69720 | 80.7 | 80.7 | 19.3
+3) Add to cart | 50369 | 58.3 | 72.2 | 27.8
+4) Checkout start | 39067 | 45.2 | 77.6 | 22.4
+5) Order placed | 31363 | 36.3 | 80.3 | 19.7
+
+-- Q12: Where is the biggest leak? Funnel segmented by device, user tenure and stockout exposure
+device | user_type | stock_view | sessions | view_to_cart_pct | cart_to_order_pct | session_conversion_pct
+Android | New (<=30 days) | Saw stockout | 1191 | 45.4 | 55.1 | 18.6
+iOS | New (<=30 days) | Saw stockout | 588 | 48.6 | 53.6 | 19.2
+Android | Returning | Saw stockout | 9180 | 48.7 | 54.7 | 20.3
+iOS | Returning | Saw stockout | 4340 | 51.0 | 55.4 | 21.7
+iOS | New (<=30 days) | No stockout | 2652 | 75.6 | 60.9 | 37.5
+Android | New (<=30 days) | No stockout | 5657 | 76.7 | 62.6 | 39.1
+iOS | Returning | No stockout | 20051 | 76.9 | 63.0 | 39.7
+Android | Returning | No stockout | 42751 | 77.0 | 63.5 | 39.9
