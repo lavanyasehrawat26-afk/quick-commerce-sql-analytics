@@ -1,5 +1,5 @@
 
--- Quick-Commerce Operations & Funnel Analytics: 12 SQL queries (SQLite)
+-- Quick-Commerce Operations & Funnel Analytics: 13 SQL queries (SQLite)
 
 -- Q1: Data validation before analysis: duplicates, orphan keys, invalid values
 check_name | rows_flagged
@@ -136,3 +136,12 @@ iOS | New (<=30 days) | No stockout | 2652 | 75.6 | 60.9 | 37.5
 Android | New (<=30 days) | No stockout | 5657 | 76.7 | 62.6 | 39.1
 iOS | Returning | No stockout | 20051 | 76.9 | 63.0 | 39.7
 Android | Returning | No stockout | 42751 | 77.0 | 63.5 | 39.9
+
+-- Q13: Impact sizing in rupees: (a) GMV lost to stockouts in the funnel, (b) promo pilot payback
+metric | value
+Stockout-driven lost orders (13 weeks) | 2925.0
+Stockout-driven lost GMV, Rs lakh (13 weeks) | 22.0
+Promo incremental orders | 870.0
+Promo discount cost, Rs lakh | 1.36
+Promo incremental GMV, Rs lakh | 6.55
+Discount cost per incremental order, Rs | 157.0
