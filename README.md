@@ -41,42 +41,42 @@
 
 ### 1. The evening peak is where the 10-minute promise breaks
 
-![On-time rate by time of day](charts/1_on_time_by_time_slot.png)
+![On-time rate by time of day](1_on_time_by_time_slot.png)
 
 The 6–10 PM slot carries the largest share of orders (37%) but has the lowest on-time rate (35%), against 77% during the day and late at night. Average delivery time rises from 8.5 to 11.1 minutes.
 **So what:** this is a rider-capacity problem tied to time of day. The fixes are rider shifts and pre-packing, not new stores. *(Query Q4)*
 
 ### 2. Three stores are well behind the rest of the network
 
-![On-time rate by store](charts/2_store_on_time_ranking.png)
+![On-time rate by store](2_store_on_time_ranking.png)
 
 Nine stores cluster at 67–69% on time. Golf Course Ext (52%), Sector 137 (33%, a store opened recently and still ramping up) and Dwarka Sec 12 (6%) are clear outliers. Dwarka's defect rate is normal, so orders are picked correctly but delivered late.
 **So what:** audit rider count and catchment radius at these three stores before taking any network-wide action. *(Query Q3)*
 
 ### 3. Demand-surge days are caught automatically
 
-![Daily delivery time with anomalies](charts/3_delivery_time_anomalies.png)
+![Daily delivery time with anomalies](3_delivery_time_anomalies.png)
 
 A 7-day rolling baseline flags 4 days when delivery time ran 32–38% above normal. Order volume rose on the same days, which points to demand surges (for example, rain) rather than store failures.
 **So what:** turn this query into a daily alert that triggers standby rider pools. *(Query Q5)*
 
 ### 4. Perishables stock out on about 1 in 5 store-days
 
-![Stockout rate by category](charts/4_stockouts_by_category.png)
+![Stockout rate by category](4_stockouts_by_category.png)
 
 Fruits & Vegetables and Dairy & Bread turn about 39 times a month, three times faster than other categories, and stock out on 18–19% of store-days. Every other category stays under 3%. Orders with a stocked-out item in the basket are cancelled 3x as often (3.0% vs 1.0%) and have 3.7x more missing-item complaints (2.7% vs 0.7%).
 **So what:** perishables need more replenishment cover; the current level does not match their turnover. *(Queries Q6, Q7)*
 
 ### 5. The biggest funnel leak is product view → cart, and stockouts drive it
 
-![Funnel and stockout impact](charts/5_funnel_and_stockout_impact.png)
+![Funnel and stockout impact](5_funnel_and_stockout_impact.png)
 
 Only 36% of app sessions end in an order. The largest drop (−28%) is between viewing a product and adding it to the cart. Sessions where the customer saw a stockout convert at 21%, against 40% for sessions that didn't. Device and new-vs-returning gaps are under 2 pp, so app design is not the main issue.
 **Size of the problem:** ≈ 2,900 lost orders ≈ **₹22 lakh GMV in 13 weeks.** *(Queries Q11, Q12, Q13)*
 
 ### 6. The promo pilot works on volume; the economics are the open question
 
-![Promo pilot lift](charts/6_promo_pilot_lift.png)
+![Promo pilot lift](6_promo_pilot_lift.png)
 
 Pilot stores grew orders per store per day by 22%, against 4% in control stores: about 870 incremental orders. The ₹50 discount was also given on orders that would have happened anyway, so the real cost is **₹157 of discount per extra order**, about 21% of the average order value.
 **So what:** don't roll it out to everyone. Scale it only if contribution margin per order exceeds ₹157, or target it at Occasional customers, whose 30-day repeat rate is 37% against 71% for Regular customers. *(Queries Q8, Q10, Q13)*
@@ -150,7 +150,7 @@ python3 make_charts.py             # rebuilds the charts in /charts (needs matpl
 
 - `queries.sql`: all 13 queries plus the clean-data view
 - `results.txt`: the output of every query
-- `charts/`: the six charts used in this README
+- ``: the six charts used in this README
 - `generate_data.py`: synthetic data generator (seeded)
 - `make_charts.py`: chart builder (matplotlib)
 - `qcommerce.db`: the SQLite database
