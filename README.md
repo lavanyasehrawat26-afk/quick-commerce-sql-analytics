@@ -27,7 +27,7 @@ Full query output is in `results.txt`.
 
 ## Queries and SQL techniques
 
-12 queries in total: 10 on operations and 2 on the app funnel.
+13 queries in total: 10 on operations, 2 on the app funnel and 1 sizing business impact in rupees.
 
 | # | Business question | Techniques |
 |---|---|---|
@@ -43,6 +43,7 @@ Full query output is in `results.txt`.
 | Q10 | What share of new customers reorder within 30 days? | Chained CTEs, first-order logic, date arithmetic |
 | Q11 | Where do users drop out between app open and order? | Stage CTE, `FIRST_VALUE` and `LAG` for step conversion |
 | Q12 | Which segment leaks most: device, new vs returning, or stockout exposure? | Multi-dimension segmentation, `NULLIF` safe division, `HAVING` |
+| Q13 | What is each problem worth in rupees? Does the promo pay back? | Cross-join of CTE aggregates, counterfactual baseline |
 
 ## Key findings
 
@@ -55,7 +56,19 @@ Full query output is in `results.txt`.
 7. **Repeat behaviour differs sharply by segment.** 96% of new Power customers reorder within 30 days, compared with 71% of Regular and 37% of Occasional customers. Occasional customers are the retention lever.
 8. **The biggest funnel leak is product view to cart, and stockouts drive it.** Only 36.3% of app sessions end in an order, and the largest single drop (27.8%) happens between product view and add-to-cart. Sessions that hit a stockout convert at about 20%, against about 39% for sessions that don't. Device and new-vs-returning gaps are under 2 pp. Fixing perishable availability (finding 5) is therefore also the top conversion lever.
 
-**Recommended actions:** add rider capacity for the evening peak and at the outlier store; raise the perishables replenishment cover; show substitutes in-app when an item is out of stock; scale the promo only if the incremental orders cover the discount cost; target Occasional customers with a second-order nudge.
+## Executive summary: business impact and recommendations
+
+Over 13 weeks, stockouts cost an estimated **₹22 lakh of GMV (~2,900 orders)**. The promo pilot added **~870 incremental orders at ₹157 of discount per order**, which is about 21% of AOV.
+
+| Priority | Problem | Impact | Recommended action | Owner | KPI to track |
+|---|---|---|---|---|---|
+| 1 | Perishable stockouts (18–19% of store-days) cut conversion from 39% to 20% | ₹22L GMV lost in 13 weeks | Raise perishable replenishment cover; show substitutes in-app when an item is out of stock | Category + Supply chain | Stockout-day %, view-to-cart % |
+| 2 | Evening peak on-time at 34.7% vs 77% off-peak | 36.5% of orders miss the 10-minute promise | Add rider shifts 6–10 PM; pre-pack top SKUs before the peak | Operations | Peak on-time %, avg delivery minutes |
+| 3 | One store at 6.2% on-time (13.5 minutes average) | Weakest store in the network; risk to repeat rate | Audit rider capacity and the store's catchment radius | City operations | Store on-time %, weekly rank |
+| 4 | Promo costs ₹157 of discount per incremental order | ₹1.36L discount for ₹6.55L incremental GMV | Do not scale it as a blanket offer; scale only if contribution margin per order exceeds ₹157; retarget the offer at Occasional customers (37% repeat rate) | Growth / Marketing | Incremental orders, cost per incremental order, 30-day repeat |
+| 5 | Demand-surge days run 32–38% slower | 4 days flagged in 13 weeks | Alert when daily delivery time exceeds the 7-day baseline by 15%; keep surge rider pools on standby | Operations | Anomaly days per month |
+
+**Assumptions and limits:** the data is synthetic. The lost-GMV figure assumes stockout sessions would convert at the no-stockout rate. The promo baseline applies control-group growth (+3.7%) to pilot stores. Discount cost assumes ₹50 per redemption.
 
 ## Files
 
