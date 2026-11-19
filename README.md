@@ -143,14 +143,14 @@ FROM daily;   -- rows deviating >15% from prior_7d_avg are flagged
 ```bash
 python3 generate_data.py           # builds qcommerce.db (SQLite)
 sqlite3 qcommerce.db < queries.sql # runs all 13 queries
-python3 make_charts.py             # rebuilds the charts in /charts (needs matplotlib)
+python3 make_charts.py             # rebuilds the six chart PNGs (needs matplotlib)
 ```
 
 ## Files
 
 - `queries.sql`: all 13 queries plus the clean-data view
 - `results.txt`: the output of every query
-- ``: the six charts used in this README
+- `1_…png` to `6_…png`: the six charts used in this README
 - `generate_data.py`: synthetic data generator (seeded)
 - `make_charts.py`: chart builder (matplotlib)
 - `qcommerce.db`: the SQLite database
